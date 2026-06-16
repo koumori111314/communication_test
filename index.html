@@ -1,1 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コミュニケーションタイプ診断</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #fff;
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .question p {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #result-container {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: #e8f6f3;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        #result-title {
+            font-size: 22px;
+            color: #16a085;
+            margin-bottom: 10px;
+        }
+        #result-desc {
+            font-size: 16px;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <h1>💬 コミュニケーションタイプ診断</h1>
+    
+    <div id="quiz-container">
+        <p style="text-align: center; margin-bottom: 30px;">直感で、自分に最も当てはまるものを選んでください。</p>
+        <p id="error-msg" class="error">すべての質問に回答してください。</p>
+
+        <form id="quiz-form">
+            <div class="question">
+                <p>Q1. 自分の意見や考えを、はっきりと相手に伝えられる。</p>
+                <div class="options">
+                    <label><input type="radio" name="q1" value="3"> よく当てはまる</label>
+                    <label><input type="radio" name="q1" value="2"> どちらかといえば当てはまる</label>
+                    <label><input type="radio" name="q1" value="1"> あまり当てはまらない</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>Q2. 相手の話を最後まで遮らずに聞くことができる。</p>
+                <div class="options">
+                    <label><input type="radio" name="q2" value="3"> よく当てはまる</label>
+                    <label><input type="radio" name="q2" value="2"> どちらかといえば当てはまる</label>
+                    <label><input type="radio" name="q2" value="1"> あまり当てはまらない</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>Q3. 初対面の人と話すのは得意な方だ。</p>
+                <div class="options">
+                    <label><input type="radio" name="q3" value="3"> よく当てはまる</label>
+                    <label><input type="radio" name="q3" value="2"> どちらかといえば当てはまる</label>
+                    <label><input type="radio" name="q3" value="1"> あまり当てはまらない</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>Q4. 意見が対立した時、双方が納得する妥協点を見つけようとする。</p>
+                <div class="options">
+                    <label><input type="radio" name="q4" value="3"> よく当てはまる</label>
+                    <label><input type="radio" name="q4" value="2"> どちらかといえば当てはまる</label>
+                    <label><input type="radio" name="q4" value="1"> あまり当てはまらない</label>
+                </div>
+            </div>
+
+            <div class="question">
+                <p>Q5. 相手の表情や声のトーンから、感情を読み取るのが得意だ。</p>
+                <div class="options">
+                    <label><input type="radio" name="q5" value="3"> よく当てはまる</label>
+                    <label><input type="radio" name="q5" value="2"> どちらかといえば当てはまる</label>
+                    <label><input type="radio" name="q5" value="1"> あまり当てはまらない</label>
+                </div>
+            </div>
+
+            <button type="button" onclick="calculateResult()">診断結果を見る</button>
+        </form>
+    </div>
+
+    <div id="result-container">
+        <h2 id="result-title"></h2>
+        <p id="result-desc"></p>
+        <button onclick="location.reload()">もう一度診断する</button>
+    </div>
+</div>
+
+<script>
+    function calculateResult() {
+        const form = document.getElementById('quiz-form');
+        const formData = new FormData(form);
+        let totalScore = 0;
+        let answeredQuestions = 0;
+
+        // スコアの集計と未回答チェック
+        for (let i = 1; i <= 5; i++) {
+            const answer = formData.get('q' + i);
+            if (answer) {
+                totalScore += parseInt(answer);
+                answeredQuestions++;
+            }
+        }
+
+        const errorMsg = document.getElementById('error-msg');
+        
+        // 全問回答していない場合はエラーを表示
+        if (answeredQuestions < 5) {
+            errorMsg.style.display = 'block';
+            return;
+        } else {
+            errorMsg.style.display = 'none';
+        }
+
+        // 結果の判定ロジック
+        let title = '';
+        let desc = '';
+
+        if (totalScore >= 13) {
+            title = '✨ バランスの取れた達人タイプ';
+            desc = '自己主張と傾聴のバランスが非常に取れています。相手の気持ちを尊重しながら、自分の意見もしっかりと伝えられるため、周囲から高い信頼を得ているでしょう。';
+        } else if (totalScore >= 9) {
+            title = '🤝 協調性あふれるサポータータイプ';
+            desc = '周囲との調和を大切にするタイプです。相手の話を聞くのは得意ですが、時には自分の意見を少し抑え込んでしまうことがあるかもしれません。もう少し自己主張しても大丈夫です。';
+        } else {
+            title = '🌱 慎重なリスナータイプ';
+            desc = '控えめで慎重なコミュニケーションをとるタイプです。相手の顔色をうかがいすぎて、言いたいことが言えないことがあるかもしれません。まずは身近な人に少しずつ自分の気持ちを伝える練習をしてみましょう。';
+        }
+
+        // 表示の切り替え
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('result-title').textContent = title;
+        document.getElementById('result-desc').textContent = desc;
+        document.getElementById('result-container').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

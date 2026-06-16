@@ -58,6 +58,8 @@
         button:hover {
             background-color: #2980b9;
         }
+        
+        /* 結果表示エリアのスタイル */
         #result-container {
             display: none;
             text-align: center;
@@ -73,6 +75,7 @@
         }
         #result-desc {
             font-size: 16px;
+            margin-bottom: 30px;
         }
         .error {
             color: #e74c3c;
@@ -80,6 +83,51 @@
             margin-top: -10px;
             margin-bottom: 10px;
             display: none;
+        }
+
+        /* SNSシェアボタンのスタイル */
+        .share-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px dashed #bdc3c7;
+        }
+        .share-section p {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .share-btn:hover {
+            opacity: 0.8;
+        }
+        .share-x { background-color: #000000; }
+        .share-line { background-color: #06C755; }
+        .share-fb { background-color: #1877F2; }
+
+        /* QRコードのスタイル */
+        .qr-container {
+            margin-top: 30px;
+        }
+        .qr-container img {
+            max-width: 150px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -120,24 +168,6 @@
                 </div>
             </div>
 
-            <div class="question">
-                <p>Q4. 意見が対立した時、双方が納得する妥協点を見つけようとする。</p>
-                <div class="options">
-                    <label><input type="radio" name="q4" value="3"> よく当てはまる</label>
-                    <label><input type="radio" name="q4" value="2"> どちらかといえば当てはまる</label>
-                    <label><input type="radio" name="q4" value="1"> あまり当てはまらない</label>
-                </div>
-            </div>
-
-            <div class="question">
-                <p>Q5. 相手の表情や声のトーンから、感情を読み取るのが得意だ。</p>
-                <div class="options">
-                    <label><input type="radio" name="q5" value="3"> よく当てはまる</label>
-                    <label><input type="radio" name="q5" value="2"> どちらかといえば当てはまる</label>
-                    <label><input type="radio" name="q5" value="1"> あまり当てはまらない</label>
-                </div>
-            </div>
-
             <button type="button" onclick="calculateResult()">診断結果を見る</button>
         </form>
     </div>
@@ -145,7 +175,23 @@
     <div id="result-container">
         <h2 id="result-title"></h2>
         <p id="result-desc"></p>
-        <button onclick="location.reload()">もう一度診断する</button>
+        
+        <div class="share-section">
+            <p>＼ 結果をみんなにシェアしよう！ ／</p>
+            
+            <div class="share-buttons">
+                <a href="#" id="share-x" class="share-btn share-x" target="_blank" rel="noopener noreferrer">𝕏 でシェア</a>
+                <a href="#" id="share-line" class="share-btn share-line" target="_blank" rel="noopener noreferrer">LINE で送る</a>
+                <a href="#" id="share-fb" class="share-btn share-fb" target="_blank" rel="noopener noreferrer">Facebook</a>
+            </div>
+
+            <div class="qr-container">
+                <p style="font-size: 14px; margin-bottom: 10px;">スマホからアクセス・シェアする</p>
+                <img src="QR.png" alt="サイトのQRコード" id="qr-image" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://example.com'; this.onerror=null;">
+            </div>
+        </div>
+
+        <button onclick="location.reload()" style="margin-top: 30px;">もう一度診断する</button>
     </div>
 </div>
 
@@ -156,8 +202,10 @@
         let totalScore = 0;
         let answeredQuestions = 0;
 
-        // スコアの集計と未回答チェック
-        for (let i = 1; i <= 5; i++) {
+        // 今回はデモを短くするためQ3までにしていますが、必要に応じてQ5までに戻してください
+        const questionCount = 3; 
+
+        for (let i = 1; i <= questionCount; i++) {
             const answer = formData.get('q' + i);
             if (answer) {
                 totalScore += parseInt(answer);
@@ -167,28 +215,42 @@
 
         const errorMsg = document.getElementById('error-msg');
         
-        // 全問回答していない場合はエラーを表示
-        if (answeredQuestions < 5) {
+        if (answeredQuestions < questionCount) {
             errorMsg.style.display = 'block';
             return;
         } else {
             errorMsg.style.display = 'none';
         }
 
-        // 結果の判定ロジック
         let title = '';
         let desc = '';
 
-        if (totalScore >= 13) {
+        if (totalScore >= 8) {
             title = '✨ バランスの取れた達人タイプ';
             desc = '自己主張と傾聴のバランスが非常に取れています。相手の気持ちを尊重しながら、自分の意見もしっかりと伝えられるため、周囲から高い信頼を得ているでしょう。';
-        } else if (totalScore >= 9) {
+        } else if (totalScore >= 5) {
             title = '🤝 協調性あふれるサポータータイプ';
-            desc = '周囲との調和を大切にするタイプです。相手の話を聞くのは得意ですが、時には自分の意見を少し抑え込んでしまうことがあるかもしれません。もう少し自己主張しても大丈夫です。';
+            desc = '周囲との調和を大切にするタイプです。相手の話を聞くのは得意ですが、時には自分の意見を少し抑え込んでしまうことがあるかもしれません。';
         } else {
             title = '🌱 慎重なリスナータイプ';
-            desc = '控えめで慎重なコミュニケーションをとるタイプです。相手の顔色をうかがいすぎて、言いたいことが言えないことがあるかもしれません。まずは身近な人に少しずつ自分の気持ちを伝える練習をしてみましょう。';
+            desc = '控えめで慎重なコミュニケーションをとるタイプです。相手の顔色をうかがいすぎて、言いたいことが言えないことがあるかもしれません。';
         }
+
+        // --- SNSシェア用の設定 ---
+        // ※ 本番環境に公開した際、このURLを実際のサイトURLに変更してください
+        const siteUrl = "https://example.com"; 
+        
+        // シェアされるテキスト（診断結果のタイトルが自動で入ります）
+        const shareText = `私のコミュニケーションタイプは「${title}」でした！\nみんなも診断してみよう👇\n`;
+        
+        // URLエンコード（日本語や記号を正しくURLに乗せるための処理）
+        const encodedText = encodeURIComponent(shareText);
+        const encodedUrl = encodeURIComponent(siteUrl);
+
+        // 各ボタンのリンク先（href）を動的に書き換え
+        document.getElementById('share-x').href = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+        document.getElementById('share-line').href = `https://line.me/R/msg/text/?${encodedText}%20${encodedUrl}`;
+        document.getElementById('share-fb').href = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
 
         // 表示の切り替え
         document.getElementById('quiz-container').style.display = 'none';
